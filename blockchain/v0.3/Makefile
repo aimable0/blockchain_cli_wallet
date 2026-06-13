@@ -46,15 +46,15 @@ OBJ = $(SRC:.c=.o)
 all: $(NAME)
 
 $(NAME): $(OBJ)
-       $(AR) $(ARFLAGS) $@ $^
+	$(AR) $(ARFLAGS) $@ $^
 
 %.o: %.c blockchain.h transaction/transaction.h ../../llist.h
-       $(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 clean:
-       $(RM) $(OBJ)
+	$(RM) $(OBJ)
 
 fclean: clean
-       $(RM) $(NAME)
+	$(RM) $(NAME)
 
 re: fclean all
