@@ -25,7 +25,8 @@ BLOCKCHAIN_SRCS = \
 	../blockchain/v0.3/provided/_blockchain_destroy.c \
 	../blockchain/v0.3/provided/_blockchain_print.c \
 	../blockchain/v0.3/provided/_endianness.c \
-	../blockchain/v0.3/provided/_genesis.c
+	../blockchain/v0.3/provided/_genesis.c \
+	../llist.c
 
 BLOCKCHAIN_OBJS = $(BLOCKCHAIN_SRCS:.c=.o)
 
