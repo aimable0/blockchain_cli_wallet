@@ -1,16 +1,31 @@
 CC = gcc
-CFLAGS = -Wall -Werror -Wextra -pedantic -std=gnu90 -ggdb3 -c
+CFLAGS = -Wall -Werror -Wextra -pedantic -std=gnu90 -ggdb3
+CPPFLAGS = -I.
 OBJDIR = targets/
+RM = rm -f
 
-SRC0 = sha256.c ec_create.c ec_to_pub.c ec_from_pub.c ec_save.c ec_load.c ec_sign.c ec_verify.c
-OBJ0 = $(addprefix $(OBJDIR), $(SRC0:%.c=%.o))
-NAME0 = libhblk_crypto.a
+SRC = sha256.c ec_create.c ec_to_pub.c ec_from_pub.c ec_save.c ec_load.c ec_sign.c ec_verify.c
+OBJ = $(addprefix $(OBJDIR), $(SRC:%.c=%.o))
+NAME = libhblk_crypto.a
 
-libhblk_crypto.a: hblk_crypto.h $(OBJDIR) $(OBJ0)
-	ar rcs $(NAME0) $(OBJ0)
+.PHONY: all clean fclean re
 
-$(OBJDIR)%.o: %.c
-	gcc $(CFLAGS) -c $< -o $@
+all: $(NAME)
+
+$(NAME): hblk_crypto.h $(OBJDIR) $(OBJ)
+	ar rcs $@ $(OBJ)
+
+$(OBJDIR)%.o: %.c | $(OBJDIR)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 $(OBJDIR):
-	mkdir $(OBJDIR)
+	mkdir -p $(OBJDIR)
+
+clean:
+	$(RM) $(OBJ)
+
+fclean: clean
+	$(RM) $(NAME)
+	$(RM) -r $(OBJDIR)
+
+re: fclean all

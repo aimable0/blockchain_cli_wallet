@@ -1,50 +1,40 @@
-# Define the compiler
 CC = gcc
-
-# Compiler flags: enable all warnings, treat warnings as errors, enable extra warnings, enforce standards compliance
-CFLAGS = -Wall -Werror -Wextra -pedantic -I.
-
-# Command to remove files
+CFLAGS = -Wall -Werror -Wextra -pedantic -std=gnu90 -ggdb3
+CPPFLAGS = -I.. -I../blockchain/v0.3 -I../blockchain/v0.3/transaction -I../blockchain/v0.3/provided -I../crypto
 RM = rm -f
 
-# Command to generate tags for source code files
-CTAGS = ctags
+LIBB = ../blockchain/v0.3/libhblk_blockchain.a
+LIBC = ../crypto/libhblk_crypto.a
 
-# Name of the tags file
-TAGS = .tags
-
-# Libraries and paths needed for linking
-LIBS = -L../blockchain/v0.3 -lhblk_blockchain -L../crypto -lhblk_crypto -lllist -lssl -lcrypto -pthread
-
-# Source files collected from current directory
 SRC = $(wildcard *.c)
+OBJ = $(SRC:.c=.o)
+NAME = cli
 
-# Object files generated from source files
-OBJ = $(patsubst %.c,%.o,$(SRC))
+.PHONY: all clean fclean re libhblk_blockchain.a libhblk_crypto.a
 
-# Phony targets for managing commands
-.PHONY: all clean distclean oclean tags cli
+all: $(LIBB) $(LIBC) $(NAME)
 
-# Default target: build the CLI application
-all: cli
+$(LIBB):
+	$(MAKE) -C ../blockchain/v0.3
 
-# Remove the compiled application
-clean: oclean
-	$(RM) cli
+$(LIBC):
+	$(MAKE) -C ../crypto
 
-# Remove the compiled application and tags file
-distclean: clean
-	$(RM) $(TAGS)
+$(NAME): $(OBJ) $(LIBB) $(LIBC)
+	$(CC) $(CFLAGS) $(OBJ) -o $@ -L../blockchain/v0.3 -lhblk_blockchain -L../crypto -lhblk_crypto -lssl -lcrypto -pthread
 
-# Remove object files
-oclean:
+%.o: %.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+clean:
 	$(RM) $(OBJ)
+	$(MAKE) -C ../blockchain/v0.3 clean
+	$(MAKE) -C ../crypto clean
 
-# Generate tags for all relevant source files
-tags:
-	$(CTAGS) -f $(TAGS) -R
+fclean: clean
+	$(RM) $(NAME)
+	$(MAKE) -C ../blockchain/v0.3 fclean
+	$(MAKE) -C ../crypto fclean
 
-# Link object files into a single executable
-cli: $(OBJ)
-	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
+re: fclean all
 
