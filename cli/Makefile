@@ -1,68 +1,50 @@
+# Define the compiler
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pedantic -g
-INCLUDES = -I.. -I../blockchain/v0.2 -I../crypto
 
-LIBB = ../blockchain/v0.3/libhblk_blockchain.a
-LIBC = ../crypto/libhblk_crypto.a
+# Compiler flags: enable all warnings, treat warnings as errors, enable extra warnings, enforce standards compliance
+CFLAGS = -Wall -Werror -Wextra -pedantic -I.
 
-NAME = cli
-SRC = cli.c
-OBJ = $(SRC:.c=.o)
+# Command to remove files
+RM = rm -f
 
-# Blockchain source files
-BLOCKCHAIN_SRCS = \
-	../blockchain/v0.3/block_create.c \
-	../blockchain/v0.3/block_destroy.c \
-	../blockchain/v0.3/block_hash.c \
-	../blockchain/v0.3/block_is_valid.c \
-	../blockchain/v0.3/block_mine.c \
-	../blockchain/v0.3/blockchain_create.c \
-	../blockchain/v0.3/blockchain_deserialize.c \
-	../blockchain/v0.3/blockchain_destroy.c \
-	../blockchain/v0.3/blockchain_serialize.c \
-	../blockchain/v0.3/blockchain_difficulty.c \
-	../blockchain/v0.3/hash_matches_difficulty.c \
-	../blockchain/v0.3/provided/_blockchain_destroy.c \
-	../blockchain/v0.3/provided/_blockchain_print.c \
-	../blockchain/v0.3/provided/_endianness.c \
-	../blockchain/v0.3/provided/_genesis.c \
-	../llist.c
+# Command to generate tags for source code files
+CTAGS = ctags
 
-BLOCKCHAIN_OBJS = $(BLOCKCHAIN_SRCS:.c=.o)
+# Name of the tags file
+TAGS = .tags
 
-# Crypto source files
-CRYPTO_SRCS = \
-	../crypto/sha256.c \
-	../crypto/ec_create.c \
-	../crypto/ec_to_pub.c \
-	../crypto/ec_from_pub.c \
-	../crypto/ec_save.c \
-	../crypto/ec_load.c \
-	../crypto/ec_sign.c \
-	../crypto/ec_verify.c
+# Libraries and paths needed for linking
+LIBS = -L../blockchain/v0.3 -lhblk_blockchain -L../crypto -lhblk_crypto -lllist -lssl -lcrypto -pthread
 
-CRYPTO_OBJS = $(CRYPTO_SRCS:.c=.o)
+# Source files collected from current directory
+SRC = $(wildcard *.c)
 
-.PHONY: all clean fclean re
+# Object files generated from source files
+OBJ = $(patsubst %.c,%.o,$(SRC))
 
-all: $(NAME)
+# Phony targets for managing commands
+.PHONY: all clean distclean oclean tags cli
 
-$(LIBB): $(BLOCKCHAIN_OBJS)
-	ar rcs $(LIBB) $(BLOCKCHAIN_OBJS)
+# Default target: build the CLI application
+all: cli
 
-$(LIBC): $(CRYPTO_OBJS)
-	ar rcs $(LIBC) $(CRYPTO_OBJS)
+# Remove the compiled application
+clean: oclean
+	$(RM) cli
 
-$(NAME): $(OBJ) $(LIBB) $(LIBC)
-	$(CC) $(CFLAGS) $(OBJ) $(LIBB) $(LIBC) -o $(NAME) -lssl -lcrypto
+# Remove the compiled application and tags file
+distclean: clean
+	$(RM) $(TAGS)
 
-%.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+# Remove object files
+oclean:
+	$(RM) $(OBJ)
 
-clean:
-	rm -f $(OBJ) $(BLOCKCHAIN_OBJS) $(CRYPTO_OBJS)
+# Generate tags for all relevant source files
+tags:
+	$(CTAGS) -f $(TAGS) -R
 
-fclean: clean
-	rm -f $(NAME) $(LIBB) $(LIBC)
+# Link object files into a single executable
+cli: $(OBJ)
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
-re: fclean all
