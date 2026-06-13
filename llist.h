@@ -1,10 +1,3 @@
-/*
- * llist.h - Linked list interface
- *
- * This header defines the interface for a generic linked list implementation
- * used throughout the blockchain project.
- */
-
 #ifndef LLIST_H
 #define LLIST_H
 
@@ -22,6 +15,17 @@ typedef enum llist_mtx_s
 } llist_mtx_t;
 
 /**
+ * enum add_node_direction_s - Direction to insert node in list
+ * @ADD_NODE_FRONT: Insert at list head
+ * @ADD_NODE_REAR: Insert at list tail
+ */
+typedef enum add_node_direction_s
+{
+    ADD_NODE_FRONT = 0,
+    ADD_NODE_REAR
+} add_node_direction_t;
+
+/**
  * struct llist_node_s - Node in the linked list
  * @next: Pointer to next node
  * @prev: Pointer to previous node
@@ -33,6 +37,10 @@ typedef struct llist_node_s
     struct llist_node_s *prev;
     void *content;
 } llist_node_t;
+
+typedef int (*node_func_t)(llist_node_t node, unsigned int idx, void *arg);
+typedef void (*node_dtor_t)(void *content);
+typedef int (*node_cmp_t)(llist_node_t node, void *arg);
 
 /**
  * struct llist_s - Linked list structure
@@ -87,19 +95,18 @@ llist_t *llist_destroy(llist_t *list, int free_content,
                        void (*free_func)(void *content));
 
 /**
- * llist_for_each - Iterate over list and apply function to each element
- * @list: Pointer to the linked list
- * @func: Function pointer to apply to each node's content
- *
- * Return: Number of nodes processed or -1 on failure
- */
-int llist_for_each(llist_t const *list, int (*func)(void *, unsigned int, void *));
 
-/**
- * llist_print - Print the linked list (for debugging)
- * @list: Pointer to the linked list
- * @print_content: Function pointer to print each node's content
- */
+llist_t *llist_create(llist_mtx_t mt);
+size_t llist_size(llist_t const *list);
+void *llist_get_head(llist_t const *list);
+void *llist_get_tail(llist_t const *list);
+void *llist_get_node_at(llist_t const *list, size_t index);
+void *llist_find_node(llist_t const *list, node_cmp_t cmp, void *arg);
+void *llist_pop(llist_t *list);
+llist_node_t *llist_add_node(llist_t *list, void *content,
+	add_node_direction_t direction);
+void *llist_remove_node(llist_t *list, node_cmp_t cmp, void *arg,
+	int free_content, node_dtor_t free_func);
+llist_t *llist_destroy(llist_t *list, int free_content, node_dtor_t free_func);
+int llist_for_each(llist_t const *list, node_func_t func, void *arg);
 void llist_print(llist_t const *list, void (*print_content)(void const *content));
-
-#endif /* LLIST_H */
